@@ -2,6 +2,33 @@ var http = require('http');
 var fs = require('fs');
 var url = require('url');
 
+function templateHTML(title, list, body){  // HTML 템플릿 
+  return `
+  <!doctype html>
+  <html>
+  <head>
+    <title>WEB1 - ${title}</title>
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <h1><a href="/">WEB</a></h1>
+    ${list}
+    ${body}
+  </body>
+  </html>
+  `;
+}
+
+function templateList(filelist){   // List에 대한 템플릿
+  var list = '<ul>';
+  for (var i = 0; i < filelist.length; i++) {
+    list += `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
+  }
+  list += '</ul>';
+
+  return list;
+}
+
 var app = http.createServer(function (request, response) {
   var _url = request.url;
   var queryData = url.parse(_url, true).query;  // url 분석하는 코드
@@ -13,58 +40,18 @@ var app = http.createServer(function (request, response) {
       fs.readdir('./data', function(error, filelist){
         var title = 'Welcome';   // var 를 빼도 실행됨(why?????????????)
         var data = 'Hello, Node.js';  // var 를 빼도 실행됨(why????????????)
-
-        var list = '<ul>';
-        for(var i = 0; i < filelist.length; i++){
-          list += `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
-        }
-        list += '</ul>';
-
-        var template = `
-        <!doctype html>
-        <html>
-        <head>
-          <title>WEB1 - ${title}</title>
-          <meta charset="utf-8">
-        </head>
-        <body>
-          <h1><a href="/">WEB</a></h1>
-          ${list}
-          <h2>${title}</h2>
-          <p>${data}</p>
-        </body>
-        </html>
-        `;
+        var list = templateList(filelist);
+        var template = templateHTML(title, list, `<h2>${title}</h2>${data}`);
         response.writeHead(200);  // 서버가 브라우저에게 200 전달 : 파일을 성공적으로 전송!
         response.end(template);
       })
 
     } else {
-
       fs.readdir('./data', function (error, filelist) {
-        var list = '<ul>';
-        for (var i = 0; i < filelist.length; i++) {
-          list += `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
-        }
-        list += '</ul>';
-
         fs.readFile(`data/${queryData.id}`, 'utf8', function (err, data) {
           var title = queryData.id;
-          var template = `
-          <!doctype html>
-          <html>
-          <head>
-            <title>WEB1 - ${title}</title>
-            <meta charset="utf-8">
-          </head>
-          <body>
-            <h1><a href="/">WEB</a></h1>
-            ${list}
-            <h2>${title}</h2>
-            <p>${data}</p>
-          </body>
-          </html>
-          `;
+          var list = templateList(filelist);
+          var template = templateHTML(title, list, `<h2>${title}</h2>${data}`); 
           response.writeHead(200);  // 서버가 브라우저에게 200 전달 : 파일을 성공적으로 전송!
           response.end(template);
         })
