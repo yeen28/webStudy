@@ -1,0 +1,11 @@
+<form action="http://localhost:3000/process_create" method="post">    <!--전송버튼을 누르면 어디로 전송되는지-->
+<!--서버의 데이터를 수정, 삭제, 생성할 때는 반드시 post 방식으로 해야 함. method="post"를 통해서 url에 어떤 데이터를 보냈는지 사람 눈에 보이지 않도록 감춰줌.-->
+<!--서버로부터 사용자가 데이터를 가져올 경우, get 방식을 사용. method="get" 또는 method가 생략되어있는 경우가 get 방식임.-->
+  <p><input type="text" name="title"></p>   <!--input 입력받음 (한 줄로)-->
+  <p>
+    <textarea name="description"></textarea>    <!--input 입력받음 (여러 줄로)-->
+  </p>
+  <p>
+    <input type="submit">      <!--i입력이 끝났다는 의미. 전송버튼이 생김.-->
+  </p>
+</form>
