@@ -97,10 +97,12 @@ var app = http.createServer(function (request, response) {
       var post = qs.parse(body);
       var title = post.title;
       var description = post.description;
-      console.log(title);
+      // fs.writeFile('파일이름', '파일내용', 'utf8', function(){});
+      fs.writeFile(`data/${title}`, description, 'utf8', function(err){    // err : 에러가 있을 때 에어를 처리하는 방법.
+        response.writeHead(302, {Location: `/?id=${title}`});      // 302 : 페이지를 {Location: _______} 로 redirection 시킴.
+        response.end('success');
+      });
     });
-    response.writeHead(200);
-    response.end('success');
   } else {  // 그 외의 경로로 접속한 경우, error 표시
     response.writeHead(404);  // 404 : 파일을 찾을 수 없음.
     response.end('Not found');
