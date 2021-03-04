@@ -48,12 +48,18 @@ var app = http.createServer(function (request, response) {
         response.end(template);
       })
 
-    } else {
+    } else {    // HOME이 아닌 경우
       fs.readdir('./data', function (error, filelist) {
         fs.readFile(`data/${queryData.id}`, 'utf8', function (err, data) {
           var title = queryData.id;
           var list = templateList(filelist);
-          var template = templateHTML(title, list, `<h2>${title}</h2>${data}`, `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`); 
+          var template = templateHTML(title, list, `<h2>${title}</h2>${data}`, `<a href="/create">create</a> 
+           <a href="/update?id=${title}">update</a>
+           <form action="delete_process" method="post">
+            <input type="hidden" name="id" value="${title}">
+            <input type="submit" value="delete">
+           </form>`    // delete는 form으로 작성! (링크로 작성(get방식)하면 위험할 수 있음)
+           ); 
           response.writeHead(200);  // 서버가 브라우저에게 200 전달 : 파일을 성공적으로 전송!
           response.end(template);
         })
@@ -153,7 +159,25 @@ var app = http.createServer(function (request, response) {
         });
       });
     });
-  }else {  // 그 외의 경로로 접속한 경우, error 표시
+  } else if (pathname === "/delete_process"){
+    var body = '';
+
+    // Event
+    request.on('data', function(data){
+      body += data; 
+    });
+
+    request.on('end', function(){
+      var post = qs.parse(body);
+      var id = post.id;
+      
+      // 파일 삭제
+      fs.unlink(`data/${id}`, function(error){
+        response.writeHead(302, {Location: `/`});
+        response.end();
+      });
+    });
+  } else {  // 그 외의 경로로 접속한 경우, error 표시
     response.writeHead(404);  // 404 : 파일을 찾을 수 없음.
     response.end('Not found');
   }
