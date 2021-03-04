@@ -63,17 +63,20 @@ var app = http.createServer(function (request, response) {
     fs.readdir('./data', function(error, filelist){
       var title = 'WEB - create';  
       var list = templateList(filelist);
-      var template = templateHTML(title, list, `
-      <form action="http://localhost:3000/create_process" method="post">
-        <p><input type="text" name="title" placeholder="title"></p>
-        <p>
-          <textarea name="description" placeholder="description"></textarea>
-        </p>
-        <p>
-          <input type="submit">
-        </p>
-      </form>
-      `, '');
+      var template = templateHTML(title, list, 
+        // form을 만들어줌 (title과 description을 쓸 수 있는 칸)
+        /* submit하면 보내는 곳 : http://localhost:3000/create_process 
+         * 실제 도메인에서는 http://localhost:3000 삭제하기 */
+        `<form action="/create_process" method="post">
+          <p><input type="text" name="title" placeholder="title"></p>
+          <p>
+            <textarea name="description" placeholder="description"></textarea>
+          </p>
+          <p>
+            <input type="submit">
+          </p>
+        </form>
+        `, '');
       response.writeHead(200);  // 서버가 브라우저에게 200 전달 : 파일을 성공적으로 전송!
       response.end(template);
     });
@@ -103,7 +106,54 @@ var app = http.createServer(function (request, response) {
         response.end('success');
       });
     });
-  } else {  // 그 외의 경로로 접속한 경우, error 표시
+  } else if (pathname === `/update`){
+    fs.readdir('./data', function (error, filelist) {
+      fs.readFile(`data/${queryData.id}`, 'utf8', function (err, description) {
+        var title = queryData.id;
+        var list = templateList(filelist);
+        var template = templateHTML(title, list, 
+          `<form action="/update_process" method="post">
+          <input type="hidden" name="id" value="${title}">
+          <p>
+            <input type="text" name="title" placeholder="title" value="${title}">
+          </p>
+          <p>
+            <textarea name="description" placeholder="description">${description}</textarea>
+          </p>
+          <p>
+            <input type="submit">
+          </p>
+        </form>
+        `, 
+        `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`); 
+        response.writeHead(200);  // 서버가 브라우저에게 200 전달 : 파일을 성공적으로 전송!
+        response.end(template);
+      })
+    })
+  } else if (pathname === "/update_process"){
+    var body = '';
+
+    // Event
+    request.on('data', function(data){
+      body += data; 
+    });
+
+    request.on('end', function(){
+      var post = qs.parse(body);
+      var id = post.id;
+      var title = post.title;
+      var description = post.description;
+      
+      // 파일 이름 수정
+      fs.rename(`data/${id}`, `data/${title}`, function(error){
+        // 파일 내용 수정
+        fs.writeFile(`data/${title}`, description, 'utf8', function(err){ 
+          response.writeHead(302, { Location: `/?id=${title}` });
+          response.end();
+        });
+      });
+    });
+  }else {  // 그 외의 경로로 접속한 경우, error 표시
     response.writeHead(404);  // 404 : 파일을 찾을 수 없음.
     response.end('Not found');
   }
