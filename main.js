@@ -3,32 +3,36 @@ var fs = require('fs');
 var url = require('url');
 var qs = require('querystring');
 
-function templateHTML(title, list, body, control){  // HTML 템플릿 
-  return `
-  <!doctype html>
-  <html>
-  <head>
-    <title>WEB1 - ${title}</title>
-    <meta charset="utf-8">
-  </head>
-  <body>
-    <h1><a href="/">WEB</a></h1>
-    ${list}
-    ${control}
-    ${body}
-  </body>
-  </html>
-  `;
-}
+// refactoring.(더 효율적으로 정리정돈). template 객체.
+var template = {
 
-function templateList(filelist){   // List에 대한 템플릿
-  var list = '<ul>';
-  for (var i = 0; i < filelist.length; i++) {
-    list += `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
+  html: function(title, list, body, control){  // HTML 템플릿 
+    return `
+    <!doctype html>
+    <html>
+    <head>
+      <title>WEB1 - ${title}</title>
+      <meta charset="utf-8">
+    </head>
+    <body>
+      <h1><a href="/">WEB</a></h1>
+      ${list}
+      ${control}
+      ${body}
+    </body>
+    </html>
+    `;
+  }, 
+
+  list: function(filelist){   // List에 대한 템플릿
+    var list = '<ul>';
+    for (var i = 0; i < filelist.length; i++) {
+      list += `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
+    }
+    list += '</ul>';
+  
+    return list;
   }
-  list += '</ul>';
-
-  return list;
 }
 
 var app = http.createServer(function (request, response) {
@@ -42,18 +46,18 @@ var app = http.createServer(function (request, response) {
       fs.readdir('./data', function(error, filelist){
         var title = 'Welcome';   // var 를 빼도 실행됨(why?????????????)
         var data = 'Hello, Node.js';  // var 를 빼도 실행됨(why????????????)
-        var list = templateList(filelist);
-        var template = templateHTML(title, list, `<h2>${title}</h2>${data}`, `<a href="/create">create</a>`);
+        var list = template.list(filelist);
+        var html = template.html(title, list, `<h2>${title}</h2>${data}`, `<a href="/create">create</a>`);
         response.writeHead(200);  // 서버가 브라우저에게 200 전달 : 파일을 성공적으로 전송!
-        response.end(template);
+        response.end(html);
       })
 
     } else {    // HOME이 아닌 경우
       fs.readdir('./data', function (error, filelist) {
         fs.readFile(`data/${queryData.id}`, 'utf8', function (err, data) {
           var title = queryData.id;
-          var list = templateList(filelist);
-          var template = templateHTML(title, list, `<h2>${title}</h2>${data}`, `<a href="/create">create</a> 
+          var list = template.list(filelist);
+          var html = template.html(title, list, `<h2>${title}</h2>${data}`, `<a href="/create">create</a> 
            <a href="/update?id=${title}">update</a>
            <form action="delete_process" method="post">
             <input type="hidden" name="id" value="${title}">
@@ -61,15 +65,15 @@ var app = http.createServer(function (request, response) {
            </form>`    // delete는 form으로 작성! (링크로 작성(get방식)하면 위험할 수 있음)
            ); 
           response.writeHead(200);  // 서버가 브라우저에게 200 전달 : 파일을 성공적으로 전송!
-          response.end(template);
+          response.end(html);
         })
       })
     }
   } else if(pathname === '/create'){
     fs.readdir('./data', function(error, filelist){
       var title = 'WEB - create';  
-      var list = templateList(filelist);
-      var template = templateHTML(title, list, 
+      var list = template.list(filelist);
+      var html = template.html(title, list, 
         // form을 만들어줌 (title과 description을 쓸 수 있는 칸)
         /* submit하면 보내는 곳 : http://localhost:3000/create_process 
          * 실제 도메인에서는 http://localhost:3000 삭제하기 */
@@ -84,7 +88,7 @@ var app = http.createServer(function (request, response) {
         </form>
         `, '');
       response.writeHead(200);  // 서버가 브라우저에게 200 전달 : 파일을 성공적으로 전송!
-      response.end(template);
+      response.end(html);
     });
   } else if(pathname === '/create_process'){
     // post 방식으로 전송된 데이터를 nodejs에서 가져오기
@@ -116,8 +120,8 @@ var app = http.createServer(function (request, response) {
     fs.readdir('./data', function (error, filelist) {
       fs.readFile(`data/${queryData.id}`, 'utf8', function (err, description) {
         var title = queryData.id;
-        var list = templateList(filelist);
-        var template = templateHTML(title, list, 
+        var list = template.list(filelist);
+        var html = template.html(title, list, 
           `<form action="/update_process" method="post">
           <input type="hidden" name="id" value="${title}">
           <p>
@@ -133,7 +137,7 @@ var app = http.createServer(function (request, response) {
         `, 
         `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`); 
         response.writeHead(200);  // 서버가 브라우저에게 200 전달 : 파일을 성공적으로 전송!
-        response.end(template);
+        response.end(html);
       })
     })
   } else if (pathname === "/update_process"){
