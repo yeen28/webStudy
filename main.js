@@ -4,6 +4,7 @@ var url = require('url');
 var qs = require('querystring');
 var template = require('./lib/template.js');
 var path = require('path');
+var sanitizeHtml = require('sanitize-html');
 
 var app = http.createServer(function (request, response) {
   var _url = request.url;
@@ -27,11 +28,15 @@ var app = http.createServer(function (request, response) {
         var filteredId = path.parse(queryData.id).base;      // 입력정보에 대한 보안
         fs.readFile(`data/${filteredId}`, 'utf8', function (err, data) {
           var title = queryData.id;
+          var sanitizedTitle = sanitizeHtml(title);
+          var sanitizedDescription = sanitizeHtml(data, {
+            allowedTags:['h1']      // 'h1' 태그는 허용
+          });
           var list = template.list(filelist);
-          var html = template.html(title, list, `<h2>${title}</h2>${data}`, `<a href="/create">create</a> 
-           <a href="/update?id=${title}">update</a>
+          var html = template.html(sanitizedTitle, list, `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`, `<a href="/create">create</a> 
+           <a href="/update?id=${sanitizedTitle}">update</a>
            <form action="delete_process" method="post">
-            <input type="hidden" name="id" value="${title}">
+            <input type="hidden" name="id" value="${sanitizedTitle}">
             <input type="submit" value="delete">
            </form>`    // delete는 form으로 작성! (링크로 작성(get방식)하면 위험할 수 있음)
            ); 

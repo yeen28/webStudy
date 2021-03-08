@@ -1,0 +1,25 @@
+{
+  "name": "webstudy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yeen28/webStudy.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yeen28/webStudy/issues"
+  },
+  "homepage": "https://github.com/yeen28/webStudy#readme",
+  "dependencies": {
+    "sanitize-html": "^2.3.2"
+  }
+}
